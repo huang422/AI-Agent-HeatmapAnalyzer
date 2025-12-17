@@ -1,0 +1,504 @@
+openapi: 3.0.3
+info:
+  title: Store Heatmap AI Chatbot API
+  description: API endpoints for AI-powered chatbot sidebar that analyzes heatmap data using Ollama qwen2.5:7b model
+  version: 1.0.0
+  contact:
+    name: Store Heatmap Development Team
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+
+paths:
+  /chat/message:
+    post:
+      summary: Send message and receive AI response
+      description: Sends user's question with current heatmap data context to AI model and returns analysis in Traditional Chinese
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              basic_query:
+                summary: Basic time period query
+                value:
+                  message: "哪個時段最繁忙？"
+                  context:
+                    month: 202412
+                    hour: 8
+                    day_type: "平日"
+                  history: []
+              demographic_query:
+                summary: Demographic analysis query
+                value:
+                  message: "女性使用者比例最高的區域在哪裡？"
+                  context:
+                    month: 202412
+                    hour: 14
+                    day_type: "假日"
+                  history:
+                    - role: "user"
+                      content: "平均年齡層是多少？"
+                      timestamp: 1734480100000
+                    - role: "assistant"
+                      content: "根據數據，25-34歲年齡層占比最高..."
+                      timestamp: 1734480105000
+      responses:
+        '200':
+          description: AI response generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                success:
+                  summary: Successful AI response
+                  value:
+                    response: "根據12月平日早上8點的數據，此時段總使用者數為5234.5人，最繁忙的地點位於經度121.543、緯度25.033，該地點平均有145.2名使用者。"
+                    timestamp: 1734480123456
+                    model: "qwen2.5:7b"
+                    tokens_used: 245
+        '400':
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                message_too_long:
+                  summary: Message exceeds length limit
+                  value:
+                    detail: "Message length exceeds 500 characters"
+                missing_context:
+                  summary: Missing required context
+                  value:
+                    detail: "Field 'context.month' is required"
+        '503':
+          description: Ollama service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                service_offline:
+                  summary: Ollama not running
+                  value:
+                    detail: "Ollama service is not available. Please start Ollama and ensure qwen2.5:7b is pulled."
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                inference_failed:
+                  summary: Model inference error
+                  value:
+                    detail: "Failed to generate response: CUDA out of memory"
+
+  /chat/health:
+    get:
+      summary: Check Ollama service health
+      description: Returns current status of Ollama service connection and qwen2.5:7b model availability
+      operationId: checkChatHealth
+      tags:
+        - Chat
+      responses:
+        '200':
+          description: Health check completed (service may be connected or degraded)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                service_running:
+                  summary: Ollama connected and model loaded
+                  value:
+                    status: "ok"
+                    ollama_status: "connected"
+                    model: "qwen2.5:7b"
+                    model_loaded: true
+                    gpu_available: true
+                    error: null
+                    timestamp: "2025-12-17T10:30:00Z"
+                service_offline:
+                  summary: Ollama not reachable
+                  value:
+                    status: "degraded"
+                    ollama_status: "disconnected"
+                    model: "qwen2.5:7b"
+                    model_loaded: false
+                    gpu_available: null
+                    error: "Cannot connect to Ollama at http://localhost:11434"
+                    timestamp: "2025-12-17T10:30:00Z"
+
+  /chat/context:
+    get:
+      summary: Get data context for debugging
+      description: Retrieves filtered heatmap data and statistics for specified time period (debugging/testing only)
+      operationId: getChatContext
+      tags:
+        - Chat
+      parameters:
+        - name: month
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 202412
+          description: Month in YYYYMM format
+        - name: hour
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+            example: 8
+          description: Hour of day (0-23)
+        - name: day_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["平日", "假日"]
+            example: "平日"
+          description: Day type (weekday or weekend/holiday)
+      responses:
+        '200':
+          description: Data context retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextResponse'
+              examples:
+                with_data:
+                  summary: Context with filtered data
+                  value:
+                    metadata:
+                      total_records: 124
+                      query:
+                        month: 202412
+                        hour: 8
+                        day_type: "平日"
+                    sample_data:
+                      - month: 202412
+                        gx: 7165
+                        gy: 7152
+                        lat: 25.033311
+                        lon: 121.543653
+                        hour: 8
+                        day_type: "平日"
+                        avg_total_users: 45.2
+                        sex_1: 31.8
+                        sex_2: 68.2
+                    note: "Showing 50 of 124 records"
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+        - context
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: User's question in Traditional Chinese
+          example: "哪個時段最繁忙？"
+        context:
+          $ref: '#/components/schemas/DataContextInput'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          maxItems: 20
+          description: Recent conversation history (last 10 message pairs)
+          default: []
+
+    DataContextInput:
+      type: object
+      required:
+        - month
+        - hour
+        - day_type
+      properties:
+        month:
+          type: integer
+          description: Month in YYYYMM format
+          example: 202412
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+          description: Hour of day
+          example: 8
+        day_type:
+          type: string
+          enum: ["平日", "假日"]
+          description: Day type (weekday or weekend)
+          example: "平日"
+
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+        - timestamp
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+          description: Message sender type
+        content:
+          type: string
+          description: Message text content
+          maxLength: 10000
+        timestamp:
+          type: integer
+          description: Unix timestamp in milliseconds
+          example: 1734480123456
+
+    ChatResponse:
+      type: object
+      required:
+        - response
+        - timestamp
+        - model
+        - tokens_used
+      properties:
+        response:
+          type: string
+          description: AI-generated answer in Traditional Chinese
+          example: "根據12月平日早上8點的數據..."
+        timestamp:
+          type: integer
+          description: Unix timestamp of response generation
+          example: 1734480123456
+        model:
+          type: string
+          description: Model identifier used for generation
+          example: "qwen2.5:7b"
+        tokens_used:
+          type: integer
+          description: Approximate token count for inference
+          example: 245
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - ollama_status
+        - model
+        - model_loaded
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+          description: Overall service status
+        ollama_status:
+          type: string
+          enum: [connected, disconnected, error]
+          description: Ollama service connection state
+        model:
+          type: string
+          description: Expected model name
+          example: "qwen2.5:7b"
+        model_loaded:
+          type: boolean
+          description: Whether model is available
+        gpu_available:
+          type: boolean
+          nullable: true
+          description: GPU acceleration status (null if unknown)
+        error:
+          type: string
+          nullable: true
+          description: Error message if status is not ok
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of health check
+
+    ContextResponse:
+      type: object
+      properties:
+        metadata:
+          type: object
+          properties:
+            total_records:
+              type: integer
+              description: Number of data points matching filter
+            query:
+              type: object
+              description: Filter parameters used
+        sample_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/HeatmapDataRecord'
+          maxItems: 50
+          description: First 50 records (or all if fewer)
+        note:
+          type: string
+          description: Informational message if data truncated
+
+    HeatmapDataRecord:
+      type: object
+      description: Single geographic location's people flow statistics
+      properties:
+        month:
+          type: integer
+          description: YYYYMM format
+          example: 202412
+        gx:
+          type: integer
+          description: TWD97 TM2 grid X coordinate
+          example: 7165
+        gy:
+          type: integer
+          description: TWD97 TM2 grid Y coordinate
+          example: 7152
+        lat:
+          type: number
+          format: float
+          description: WGS84 latitude
+          example: 25.033311
+          minimum: 21.0
+          maximum: 26.0
+        lon:
+          type: number
+          format: float
+          description: WGS84 longitude
+          example: 121.543653
+          minimum: 119.0
+          maximum: 122.0
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+          example: 8
+        day_type:
+          type: string
+          enum: ["平日", "假日"]
+          example: "平日"
+        avg_total_users:
+          type: number
+          format: float
+          description: Total average user count
+          example: 45.2
+          minimum: 0
+        avg_users_under_10min:
+          type: number
+          format: float
+          description: Users with <10 min dwell time
+          example: 12.3
+          minimum: 0
+        avg_users_10_30min:
+          type: number
+          format: float
+          description: Users with 10-30 min dwell time
+          example: 18.7
+          minimum: 0
+        avg_users_over_30min:
+          type: number
+          format: float
+          description: Users with >30 min dwell time
+          example: 14.2
+          minimum: 0
+        sex_1:
+          type: number
+          format: float
+          description: Male percentage
+          example: 31.8
+          minimum: 0
+          maximum: 100
+        sex_2:
+          type: number
+          format: float
+          description: Female percentage
+          example: 68.2
+          minimum: 0
+          maximum: 100
+        age_1:
+          type: number
+          format: float
+          description: Age <19 percentage
+          minimum: 0
+          maximum: 100
+        age_2:
+          type: number
+          format: float
+          description: Age 20-24 percentage
+          minimum: 0
+          maximum: 100
+        age_3:
+          type: number
+          format: float
+          description: Age 25-29 percentage
+          minimum: 0
+          maximum: 100
+        age_4:
+          type: number
+          format: float
+          description: Age 30-34 percentage
+          minimum: 0
+          maximum: 100
+        age_5:
+          type: number
+          format: float
+          description: Age 35-39 percentage
+          minimum: 0
+          maximum: 100
+        age_6:
+          type: number
+          format: float
+          description: Age 40-44 percentage
+          minimum: 0
+          maximum: 100
+        age_7:
+          type: number
+          format: float
+          description: Age 45-49 percentage
+          minimum: 0
+          maximum: 100
+        age_8:
+          type: number
+          format: float
+          description: Age 50-59 percentage
+          minimum: 0
+          maximum: 100
+        age_9:
+          type: number
+          format: float
+          description: Age 60+ percentage
+          minimum: 0
+          maximum: 100
+        age_other:
+          type: number
+          format: float
+          description: Unclassified age percentage
+          minimum: 0
+          maximum: 100
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Human-readable error message
+          example: "Message length exceeds 500 characters"
+
+tags:
+  - name: Chat
+    description: AI chatbot endpoints for heatmap data analysis
