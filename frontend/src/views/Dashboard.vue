@@ -12,7 +12,7 @@
     </header>
 
     <!-- Main content -->
-    <div class="dashboard-content">
+    <div class="dashboard-content" :class="{ 'chat-open': isChatOpen }">
       <!-- Controls section (LEFT SIDE) -->
       <div class="controls-section">
         <!-- Playback Controls -->
@@ -132,11 +132,24 @@
         />
       </div>
     </div>
+
+    <!-- AI Chatbot Sidebar -->
+    <ChatSidebar
+      :messages="chatMessages"
+      :is-thinking="isChatThinking"
+      :is-connected="isChatConnected"
+      :error="chatError"
+      :can-send="canSendMessage"
+      @send-message="handleSendMessage"
+      @retry="handleRetryMessage"
+      @close="handleChatClose"
+      @toggle="handleChatToggle"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import HeatmapMap from '../components/map/HeatmapMap.vue'
 import PlaybackControls from '../components/controls/PlaybackControls.vue'
 import MonthSelector from '../components/controls/MonthSelector.vue'
@@ -145,9 +158,11 @@ import DayTypeSelector from '../components/controls/DayTypeSelector.vue'
 import TimelineSlider from '../components/controls/TimelineSlider.vue'
 import GenderChart from '../components/charts/GenderChart.vue'
 import AgeChart from '../components/charts/AgeChart.vue'
+import ChatSidebar from '../components/chat/ChatSidebar.vue'
 import { useHeatmapData } from '../composables/useHeatmapData'
 import { useAutoplay } from '../composables/useAutoplay'
 import { useDemographics } from '../composables/useDemographics'
+import { useChatbot } from '../composables/useChatbot'
 
 // Use heatmap data composable
 const {
@@ -293,9 +308,52 @@ function onMapReady(mapInstance) {
   console.log('Map ready:', mapInstance)
 }
 
+// Use chatbot composable
+const heatmapDataForChat = {
+  selectedMonth,
+  selectedHour,
+  selectedDayType
+}
+
+const {
+  messages: chatMessages,
+  isThinking: isChatThinking,
+  isConnected: isChatConnected,
+  error: chatError,
+  canSend: canSendMessage,
+  sendMessage: sendChatMessage,
+  retryLastMessage,
+  stopHealthCheck
+} = useChatbot(heatmapDataForChat)
+
+// Chatbot state
+const isChatOpen = ref(true)  // 預設開啟
+
+// Chatbot handlers
+function handleSendMessage(message) {
+  sendChatMessage(message)
+}
+
+function handleRetryMessage() {
+  retryLastMessage()
+}
+
+function handleChatClose() {
+  isChatOpen.value = false
+}
+
+function handleChatToggle(isOpen) {
+  isChatOpen.value = isOpen
+}
+
 // Lifecycle
 onMounted(() => {
   initialize()
+})
+
+onUnmounted(() => {
+  // Stop chatbot health check polling on unmount
+  stopHealthCheck()
 })
 </script>
 
@@ -332,6 +390,20 @@ onMounted(() => {
   gap: 16px;
   padding: 16px;
   overflow: hidden;
+  transition: margin-right 0.3s ease-in-out;
+}
+
+/* 當聊天框開啟時，為地圖留出空間（桌面版） */
+@media (min-width: 1024px) {
+  .dashboard-content.chat-open {
+    margin-right: 350px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dashboard-content.chat-open {
+    margin-right: 320px;
+  }
 }
 
 .map-section {

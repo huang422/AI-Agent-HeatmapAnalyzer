@@ -25,13 +25,13 @@
 
 **Purpose**: Environment setup and dependency installation for Ollama integration
 
-- [ ] T001 Add `ollama>=0.1.0` to backend/requirements.txt
-- [ ] T002 Install Ollama on development machine (manual: `curl -fsSL https://ollama.com/install.sh | sh`)
-- [ ] T003 Pull qwen2.5:7b model (manual: `ollama pull qwen2.5:7b`)
-- [ ] T004 Verify Ollama service running on localhost:11434 (manual: `ollama serve`)
-- [ ] T005 Create frontend/src/components/chat/ directory for chat components
-- [ ] T006 Create backend/tests/unit/ directory if not exists
-- [ ] T007 Create backend/tests/integration/ directory if not exists
+- [X] T001 Add `ollama>=0.1.0` to backend/requirements.txt
+- [X] T002 Install Ollama on development machine (manual: `curl -fsSL https://ollama.com/install.sh | sh`)
+- [X] T003 Pull qwen2.5:7b model (manual: `ollama pull qwen2.5:7b`)
+- [X] T004 Verify Ollama service running on localhost:11434 (manual: `ollama serve`)
+- [X] T005 Create frontend/src/components/chat/ directory for chat components
+- [X] T006 Create backend/tests/unit/ directory if not exists
+- [X] T007 Create backend/tests/integration/ directory if not exists
 
 ---
 
@@ -41,15 +41,15 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 [P] Implement OllamaService class in backend/src/services/ollama_service.py with __init__, check_health, generate_response methods
-- [ ] T009 [P] Implement DataExporter class in backend/src/services/data_exporter.py with export_to_json and get_context_summary methods
-- [ ] T010 Add OLLAMA_HOST constant to backend/src/utils/config.py (default: http://localhost:11434)
-- [ ] T011 Create Pydantic models in backend/src/api/models/chat.py (ChatMessage, ChatRequest, ChatResponse, HealthResponse)
-- [ ] T012 Implement POST /api/chat/message endpoint in backend/src/api/routes/chat.py
-- [ ] T013 Implement GET /api/chat/health endpoint in backend/src/api/routes/chat.py
-- [ ] T014 Implement GET /api/chat/context endpoint in backend/src/api/routes/chat.py (optional debug endpoint)
-- [ ] T015 Register chat router in backend/src/main.py with `app.include_router(chat.router)`
-- [ ] T016 Add Ollama health check to startup_event in backend/src/main.py
+- [X] T008 [P] Implement OllamaService class in backend/src/services/ollama_service.py with __init__, check_health, generate_response methods
+- [X] T009 [P] Implement DataExporter class in backend/src/services/data_exporter.py with export_to_json and get_context_summary methods
+- [X] T010 Add OLLAMA_HOST constant to backend/src/utils/config.py (default: http://localhost:11434)
+- [X] T011 Create Pydantic models in backend/src/api/models/chat.py (ChatMessage, ChatRequest, ChatResponse, HealthResponse)
+- [X] T012 Implement POST /api/chat/message endpoint in backend/src/api/routes/chat.py
+- [X] T013 Implement GET /api/chat/health endpoint in backend/src/api/routes/chat.py
+- [X] T014 Implement GET /api/chat/context endpoint in backend/src/api/routes/chat.py (optional debug endpoint)
+- [X] T015 Register chat router in backend/src/main.py with `app.include_router(chat.router)`
+- [X] T016 Add Ollama health check to startup_event in backend/src/main.py
 
 **Checkpoint**: Backend foundation ready - frontend implementation can now begin in parallel with testing
 
@@ -71,16 +71,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Create useChatbot composable in frontend/src/composables/useChatbot.js with messages, isThinking, isConnected state and sendMessage, checkHealth functions
-- [ ] T018 [P] [US1] Create ChatSidebar.vue component in frontend/src/components/chat/ChatSidebar.vue with toggle button, message display, input field, and thinking indicator
+- [X] T017 [P] [US1] Create useChatbot composable in frontend/src/composables/useChatbot.js with messages, isThinking, isConnected state and sendMessage, checkHealth functions
+- [X] T018 [P] [US1] Create ChatSidebar.vue component in frontend/src/components/chat/ChatSidebar.vue with toggle button, message display, input field, and thinking indicator
 - [ ] T019 [US1] Add chat color variables to frontend/src/assets/styles/main.css (--chat-bg, --chat-user-bg, --chat-ai-bg, --chat-border)
-- [ ] T020 [US1] Implement getCurrentContext function in useChatbot.js to extract month/hour/day_type from useHeatmapData composable
-- [ ] T021 [US1] Implement message sending logic in useChatbot.js calling POST /api/chat/message with context and history
-- [ ] T022 [US1] Implement automatic scroll-to-bottom in ChatSidebar.vue when new message arrives
-- [ ] T023 [US1] Implement AI response display with timestamp in ChatSidebar.vue
-- [ ] T024 [US1] Add Traditional Chinese system prompt building in backend/src/services/ollama_service.py (include data context JSON, field descriptions, response rules)
-- [ ] T025 [US1] Implement error handling in useChatbot.js for 503 (Ollama offline), 500 (inference failed), network timeout (30s)
-- [ ] T026 [US1] Display user-friendly error messages in ChatSidebar.vue for AI service errors
+- [X] T020 [US1] Implement getCurrentContext function in useChatbot.js to extract month/hour/day_type from useHeatmapData composable
+- [X] T021 [US1] Implement message sending logic in useChatbot.js calling POST /api/chat/message with context and history
+- [X] T022 [US1] Implement automatic scroll-to-bottom in ChatSidebar.vue when new message arrives
+- [X] T023 [US1] Implement AI response display with timestamp in ChatSidebar.vue
+- [X] T024 [US1] Add Traditional Chinese system prompt building in backend/src/services/ollama_service.py (include data context JSON, field descriptions, response rules)
+- [X] T025 [US1] Implement error handling in useChatbot.js for 503 (Ollama offline), 500 (inference failed), network timeout (30s)
+- [X] T026 [US1] Display user-friendly error messages in ChatSidebar.vue for AI service errors
 
 **Checkpoint**: User Story 1 complete - users can have basic conversations with AI about heatmap data
 
@@ -102,17 +102,17 @@
 
 ### Implementation for User Story 4
 
-- [ ] T027 [P] [US4] Implement open/close toggle logic in ChatSidebar.vue with isOpen state
-- [ ] T028 [P] [US4] Add slide-in/slide-out CSS transitions in ChatSidebar.vue (transform: translateX, 300ms ease-in-out)
-- [ ] T029 [P] [US4] Add responsive CSS breakpoints in ChatSidebar.vue (desktop ≥1024px: 350px sidebar, tablet 768-1023px: 320px, mobile <768px: 100vw overlay)
-- [ ] T030 [P] [US4] Add z-index layers in ChatSidebar.vue (sidebar: 100, backdrop: 99) to avoid conflicts with map controls (z-index: 10) and tooltips (z-index: 50)
-- [ ] T031 [US4] Include ChatSidebar component in frontend/src/views/Dashboard.vue
+- [X] T027 [P] [US4] Implement open/close toggle logic in ChatSidebar.vue with isOpen state
+- [X] T028 [P] [US4] Add slide-in/slide-out CSS transitions in ChatSidebar.vue (transform: translateX, 300ms ease-in-out)
+- [X] T029 [P] [US4] Add responsive CSS breakpoints in ChatSidebar.vue (desktop ≥1024px: 350px sidebar, tablet 768-1023px: 320px, mobile <768px: 100vw overlay)
+- [X] T030 [P] [US4] Add z-index layers in ChatSidebar.vue (sidebar: 100, backdrop: 99) to avoid conflicts with map controls (z-index: 10) and tooltips (z-index: 50)
+- [X] T031 [US4] Include ChatSidebar component in frontend/src/views/Dashboard.vue
 - [ ] T032 [US4] Add conditional margin-right to main content in Dashboard.vue when chatbot is open (desktop only)
-- [ ] T033 [US4] Implement semi-transparent backdrop in ChatSidebar.vue for mobile overlay (opacity: 0.5, black background)
-- [ ] T034 [US4] Implement click-outside-to-close logic in ChatSidebar.vue using backdrop click event
-- [ ] T035 [US4] Implement unread message badge counter in ChatSidebar.vue toggle button (increments when message arrives while closed)
-- [ ] T036 [US4] Add keyboard navigation support (Escape key to close, Enter to send) in ChatSidebar.vue
-- [ ] T037 [US4] Add ARIA labels to chatbot toggle button and input field for accessibility
+- [X] T033 [US4] Implement semi-transparent backdrop in ChatSidebar.vue for mobile overlay (opacity: 0.5, black background)
+- [X] T034 [US4] Implement click-outside-to-close logic in ChatSidebar.vue using backdrop click event
+- [X] T035 [US4] Implement unread message badge counter in ChatSidebar.vue toggle button (increments when message arrives while closed)
+- [X] T036 [US4] Add keyboard navigation support (Escape key to close, Enter to send) in ChatSidebar.vue
+- [X] T037 [US4] Add ARIA labels to chatbot toggle button and input field for accessibility
 
 **Checkpoint**: MVP complete (User Story 1 + User Story 4) - fully functional chatbot with responsive UI
 

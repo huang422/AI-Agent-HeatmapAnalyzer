@@ -12,7 +12,8 @@ from pathlib import Path
 
 from .utils.config import API_CONFIG, CORS_CONFIG, get_data_path
 from .services.data_loader import initialize_cache
-from .api.routes import data, demographics
+from .services.ollama_service import get_ollama_service
+from .api.routes import data, demographics, chat
 
 # Configure logging
 logging.basicConfig(
@@ -42,11 +43,25 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize data cache on application startup."""
+    """Initialize data cache and check Ollama service on application startup."""
     try:
+        # Initialize data cache
         data_path = get_data_path()
         logger.info(f"Initializing data cache from {data_path}")
         initialize_cache(str(data_path))
+        logger.info("Data cache initialized successfully")
+
+        # Check Ollama service availability
+        logger.info("Checking Ollama service availability...")
+        ollama_service = get_ollama_service()
+        health = ollama_service.check_health()
+
+        if health['status'] == 'connected':
+            logger.info(f"Ollama service connected: {health['available_models']}")
+        else:
+            logger.warning(f"Ollama service not available: {health.get('error', 'Unknown error')}")
+            logger.warning("Chat functionality will be limited until Ollama is started")
+
         logger.info("Application startup complete")
     except Exception as e:
         logger.error(f"Startup failed: {e}")
@@ -71,6 +86,7 @@ async def health_check():
 # Register API routes
 app.include_router(data.router, prefix="/api", tags=["data"])
 app.include_router(demographics.router, prefix="/api", tags=["demographics"])
+app.include_router(chat.router, prefix="/api", tags=["chat"])
 
 
 # Serve frontend static files
