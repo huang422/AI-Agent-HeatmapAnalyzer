@@ -1,10 +1,10 @@
-# Heatmap Visualization Web 
+# AI Agent Heatmap Analytics Web (Vue + FastAPI + LLM Agent)
 
 > An interactive geospatial visualization platform for analyzing customer distribution patterns across Taiwan using real-time heatmap technology.
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-brightgreen.svg)](https://vuejs.org/)
+[![Vue.js](https://img.shields.io/badㄅge/Vue.js-3.x-brightgreen.svg)](https://vuejs.org/)
 
 ## Project Overview
 
