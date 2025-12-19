@@ -1,0 +1,42 @@
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+doc/
+specs/
+.specify/
+.claude/
+
+# Build artifacts
+backend/dist/
+backend/build/
+frontend/dist/
+frontend/node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env.local
+.env.*.local
+
+# Scripts
+*.sh
+!start-docker.sh

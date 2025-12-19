@@ -11,6 +11,7 @@
 A full-stack web application that visualizes geographic user distribution data through interactive heatmaps on Taiwan's map. The system features automatic time-based cycling, multi-dimensional filtering, and comprehensive demographic analytics.
 
 **Key Highlights:**
+- **AI-Powered Assistant**: Local Ollama-based chatbot (Qwen 3:14B) for intelligent data analysis
 - **High Performance**: Sub-500ms API response time with ~260,000 coordinate conversions/second
 - **Rich Visualization**: Real-time heatmap updates with smooth transitions
 - **Advanced Analytics**: Gender and age distribution charts
@@ -49,12 +50,20 @@ A full-stack web application that visualizes geographic user distribution data t
 - **Age Groups**: 9 age brackets with percentage breakdown
 - **ECharts Integration**: Smooth animations and responsive tooltips
 
+### AI-Powered Data Assistant
+- **Local LLM Integration**: Ollama with Qwen 3:14B model
+- **Context-Aware Analysis**: Real-time data insights based on current filters
+- **Natural Language Q&A**: Ask questions about heatmap patterns in Traditional Chinese
+- **Smart Summaries**: Automatic statistics calculation and trend analysis
+- **Conversation History**: Multi-turn dialogue with context retention
+
 ## Architecture
 
 ### Technology Stack
 
 **Backend**
 - **Framework**: FastAPI (Python 3.9+) - Modern, high-performance REST API
+- **AI Integration**: Ollama - Local LLM inference (Qwen 3:14B model)
 - **Data Processing**: Pandas + NumPy - Efficient data manipulation
 - **Coordinate Conversion**: Numba JIT compilation for 260k+ conversions/sec
 - **Server**: Uvicorn ASGI server with auto-reload
@@ -81,6 +90,12 @@ A full-stack web application that visualizes geographic user distribution data t
         │                        │                         │
     OpenLayers              Uvicorn ASGI             Numba JIT
     ECharts 5               CORS Enabled          TWD97→WGS84
+    Chat UI                 Ollama API            Data Export
+                                │
+                        ┌───────▼────────┐
+                        │  Ollama Server │
+                        │  (Qwen 3:14B)  │
+                        └────────────────┘
 ```
 
 ## Quick Start
@@ -89,6 +104,7 @@ A full-stack web application that visualizes geographic user distribution data t
 - Python 3.9+ (conda environment recommended)
 - Node.js 16.x or higher
 - Git
+- **Ollama** (for AI chat feature) - [Install from ollama.com](https://ollama.com)
 
 ### Development Setup
 
@@ -98,7 +114,16 @@ git clone <repository-url>
 cd store_heatmap
 ```
 
-**2. Backend Setup**
+**2. Install and Start Ollama** (for AI chat feature)
+```bash
+# Install Ollama from https://ollama.com
+# Then pull the Qwen model
+ollama pull qwen3:14b
+
+# Ollama will run on http://localhost:11434
+```
+
+**3. Backend Setup**
 ```bash
 conda create -n fapi python=3.9 -y
 conda activate fapi
@@ -107,17 +132,43 @@ pip install -r requirements.txt
 python -m uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-**3. Frontend Setup** (new terminal)
+**4. Frontend Setup** (new terminal)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-**4. Access Application**
+**5. Access Application**
 - Frontend: http://localhost:5173
 - API Documentation: http://127.0.0.1:8000/docs
 - Interactive API: http://127.0.0.1:8000/redoc
+- Ollama API: http://localhost:11434
+
+**Note**: AI chat feature requires Ollama to be running. If Ollama is not installed, the app will still work but the chatbot will be unavailable.
+
+## Docker Deployment (Recommended)
+
+### Quick Start with Docker
+
+The easiest way to run the application with public internet access:
+
+```bash
+./start-docker.sh
+```
+
+This will:
+- Build and start all services (Backend, Frontend, Ngrok)
+- Display the local and public URLs
+- Automatically expose your app to the internet via Ngrok
+
+**Access Points:**
+- Local Frontend: http://localhost
+- Local API: http://localhost:8000/docs
+- Public URL: Displayed in terminal (share with anyone!)
+- Ngrok Dashboard: http://localhost:4040
+
+**See [DOCKER.md](./docker-instruction/DOCKER.md) for detailed Docker deployment guide.**
 
 ## Production Deployment
 
@@ -177,9 +228,15 @@ store_heatmap/
 │   ├── src/
 │   │   ├── main.py            # Application entry point
 │   │   ├── api/               # REST API routes and models
+│   │   │   └── routes/
+│   │   │       ├── data.py           # Heatmap data endpoints
+│   │   │       ├── demographics.py   # Statistics endpoints
+│   │   │       └── chat.py           # AI chatbot endpoints
 │   │   ├── services/          # Business logic layer
 │   │   │   ├── data_loader.py         # CSV data caching
-│   │   │   └── coordinate_converter.py # TWD97→WGS84
+│   │   │   ├── coordinate_converter.py # TWD97→WGS84
+│   │   │   ├── data_exporter.py       # Data summarization
+│   │   │   └── ollama_service.py      # AI integration
 │   │   └── utils/             # Configuration
 │   └── requirements.txt       # Dependencies
 │
@@ -188,7 +245,8 @@ store_heatmap/
 │   │   ├── components/        # Vue components
 │   │   │   ├── map/          # HeatmapMap
 │   │   │   ├── charts/       # GenderChart, AgeChart
-│   │   │   └── controls/     # Playback controls
+│   │   │   ├── controls/     # Playback controls
+│   │   │   └── chat/         # AI Chatbot UI
 │   │   ├── composables/      # Composition API logic
 │   │   │   ├── useAutoplay.js   # 1-sec time cycling
 │   │   │   └── useHeatmapData.js # API integration
@@ -211,6 +269,18 @@ store_heatmap/
 - `GET /api/demographics` - Gender/age statistics
   - Returns: Gender % + 9 age groups
 
+**AI Chat**
+- `POST /api/chat/message` - Send message to AI assistant
+  - Body: `{message, context, history}`
+  - Returns: AI response with analysis
+
+- `GET /api/chat/health` - Check Ollama service status
+  - Returns: Connection status and model info
+
+- `GET /api/chat/context` - Get current data context
+  - Params: `month`, `hour`, `day_type`
+  - Returns: Data summary for debugging
+
 **System**
 - `GET /api/metadata` - Available filters
 - `GET /health` - Health check
@@ -220,28 +290,36 @@ store_heatmap/
 
 - **API Response**: <500ms average
 - **Coordinate Conversion**: ~260,000/sec (Numba)
-- **Memory Usage**: ~5MB cache
+- **AI Response Time**: 2-5s (Qwen 3:14B on CPU), <1s with GPU
+- **Memory Usage**: ~5MB cache (data) + ~8GB (LLM model)
 - **Frontend Bundle**: 1.1MB gzipped
 - **Initial Load**: <2s
 
 ## Technical Highlights
 
-1. **High-Performance Coordinate Conversion**
+1. **AI-Powered Data Analysis**
+   - Local LLM inference with Ollama
+   - Context-aware responses using current filter state
+   - Automated statistics calculation and summarization
+   - Multi-turn conversation with history retention
+   - Traditional Chinese language support
+
+2. **High-Performance Coordinate Conversion**
    - Numba JIT compilation
    - Vectorized NumPy operations
    - 260k+ conversions/second
 
-2. **Reactive State Management**
+3. **Reactive State Management**
    - Vue 3 Composition API
    - Efficient dependency tracking
    - Minimal re-renders
 
-3. **Smart Data Caching**
+4. **Smart Data Caching**
    - In-memory DataFrame
    - On-demand filtering
    - 5MB footprint
 
-4. **Production-Ready Packaging**
+5. **Production-Ready Packaging**
    - Single-file executable
    - Embedded Python runtime
    - Auto-browser launch

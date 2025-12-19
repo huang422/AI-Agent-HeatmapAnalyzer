@@ -13,16 +13,21 @@ def get_base_path() -> Path:
     """
     Get base path for resources.
 
-    Works in both development and PyInstaller packaged modes.
-    In PyInstaller, resources are extracted to sys._MEIPASS.
+    Works in development, Docker, and PyInstaller packaged modes.
+    Priority: ENV var > PyInstaller > Development
     """
+    # Check if BASE_PATH is set via environment variable (for Docker)
+    env_base = os.getenv('BASE_PATH')
+    if env_base:
+        return Path(env_base)
+
+    # Check if running in PyInstaller bundle
     if getattr(sys, 'frozen', False):
-        # Running in PyInstaller bundle
         return Path(sys._MEIPASS)
-    else:
-        # Running in development
-        # Navigate from backend/src/utils/ to project root
-        return Path(__file__).parent.parent.parent.parent
+
+    # Default: development mode
+    # Navigate from backend/src/utils/ to project root
+    return Path(__file__).parent.parent.parent.parent
 
 
 # Paths

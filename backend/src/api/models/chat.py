@@ -89,7 +89,7 @@ class ChatResponse(BaseModel):
 class HealthResponse(BaseModel):
     """Response body for GET /api/chat/health."""
     status: Literal["ok", "degraded"] = Field(..., description="Overall service status")
-    ollama_status: Literal["connected", "disconnected", "error"] = Field(..., description="Ollama connection state")
+    ollama_status: Literal["connected", "degraded", "disconnected", "error"] = Field(..., description="Ollama connection state")
     model: str = Field(..., description="Expected model name")
     model_loaded: bool = Field(..., description="Whether model is available")
     gpu_available: Optional[bool] = Field(None, description="GPU acceleration status")

@@ -1,0 +1,83 @@
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: store-heatmap-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data:ro  # Mount data directory as read-only
+      - ./backend/src:/app/src  # Hot reload for development
+    environment:
+      - PYTHONUNBUFFERED=1
+      - OLLAMA_HOST=http://172.17.0.1:11434
+      - CORS_ORIGINS=*
+      - BASE_PATH=/app
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - heatmap-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: store-heatmap-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - heatmap-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Ngrok Service - Expose application to the internet
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: store-heatmap-ngrok
+    restart: unless-stopped
+    command:
+      - "http"
+      - "frontend:80"
+      - "--log=stdout"
+    ports:
+      - "4040:4040"  # Ngrok web interface
+    environment:
+      # Ngrok authtoken - enables stable connections without time limits
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+
+      # Optional: Use a custom domain (requires paid ngrok account)
+      # - NGROK_DOMAIN=${NGROK_DOMAIN}
+
+      # Set region to Asia Pacific for best performance in Taiwan
+      - NGROK_REGION=${NGROK_REGION:-ap}
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks:
+      - heatmap-network
+
+networks:
+  heatmap-network:
+    driver: bridge
+
+volumes:
+  # Optional: Create named volumes if you want to persist data
+  data-volume:
