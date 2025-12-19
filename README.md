@@ -290,7 +290,7 @@ store_heatmap/
 - `GET /health` - Health check
 - `GET /docs` - Swagger UI
 
-## ⚡ Performance
+## Performance
 
 - **API Response**: <500ms average
 - **Coordinate Conversion**: ~260,000/sec (Numba)
