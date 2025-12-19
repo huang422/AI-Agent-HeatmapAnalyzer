@@ -1,10 +1,14 @@
-# AI Agent Heatmap Analytics Web (Vue + FastAPI + LLM Agent)
+# AI Agent Heatmap Analytics Web
+# ---(Vue + FastAPI + LLM Agent)
 
 > An interactive geospatial visualization platform for analyzing customer distribution patterns across Taiwan using real-time heatmap technology.
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![Vue.js](https://img.shields.io/badㄅge/Vue.js-3.x-brightgreen.svg)](https://vuejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D.svg?logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-000000?logo=ollama&logoColor=white)](https://ollama.com/)
+[![Qwen](https://img.shields.io/badge/Qwen-3:14B-7C3AED)](https://github.com/QwenLM/Qwen)
 
 ## Project Overview
 
