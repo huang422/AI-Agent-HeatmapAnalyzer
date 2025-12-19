@@ -326,8 +326,12 @@ const {
   stopHealthCheck
 } = useChatbot(heatmapDataForChat)
 
-// Chatbot state
-const isChatOpen = ref(true)  // 預設開啟
+// Chatbot state - 桌面版預設開啟，手機/平板預設關閉
+const getInitialChatState = () => {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth > 1023
+}
+const isChatOpen = ref(getInitialChatState())
 
 // Chatbot handlers
 function handleSendMessage(message) {
@@ -393,16 +397,10 @@ onUnmounted(() => {
   transition: margin-right 0.3s ease-in-out;
 }
 
-/* 當聊天框開啟時，為地圖留出空間（桌面版） */
+/* 當聊天框開啟時，為地圖留出空間（僅桌面版） */
 @media (min-width: 1024px) {
   .dashboard-content.chat-open {
     margin-right: 350px;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .dashboard-content.chat-open {
-    margin-right: 320px;
   }
 }
 
@@ -548,40 +546,125 @@ onUnmounted(() => {
 }
 
 /* Responsive design */
-@media (max-width: 1023px) {
+
+/* 平板版 (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
   .dashboard-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: 60vh auto;
-  }
-}
-
-@media (max-width: 767px) {
-  .dashboard-header {
-    padding: 12px 16px;
-  }
-
-  .dashboard-header h1 {
-    font-size: 1.25rem;
-  }
-
-  .dashboard-content {
-    padding: 12px;
+    display: grid;
+    grid-template-columns: 280px 1fr;
     gap: 12px;
+    padding: 12px;
+    height: calc(100vh - 80px);
+    overflow: hidden;
   }
 
   .controls-section {
-    flex-direction: row;
-    overflow-x: auto;
-    flex-wrap: wrap;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .map-section {
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  /* 平板時聊天框開啟，不壓縮內容 */
+  .dashboard-content.chat-open {
+    margin-right: 0;
+  }
+
+  .stats-card {
+    display: none;
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .chart-wrapper {
+    min-height: 180px;
   }
 
   .control-group {
-    flex: 1;
-    min-width: 150px;
+    padding: 12px;
+  }
+}
+
+/* 手機版 (<768px) */
+@media (max-width: 767px) {
+  .dashboard-header {
+    padding: 10px 12px;
+    flex-shrink: 0;
   }
 
-  .playback-group {
-    flex: 1 1 100%;
+  .dashboard-header h1 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .header-info {
+    display: none;
+  }
+
+  .dashboard-content {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .controls-section {
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: visible;
+  }
+
+  .control-group {
+    padding: 8px 10px;
+    flex-shrink: 0;
+  }
+
+  .map-section {
+    flex: 1;
+    min-height: 400px;
+    max-height: 600px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .section-header {
+    padding: 8px 12px;
+  }
+
+  .section-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .current-time-display {
+    font-size: 0.7rem;
+  }
+
+  .time-value {
+    font-size: 0.8rem;
+  }
+
+  .stats-card {
+    display: none;
+  }
+
+  .charts-section {
+    display: none;
+  }
+
+  /* 手機版聊天框調整 */
+  .dashboard-content.chat-open {
+    margin-right: 0;
   }
 }
 </style>

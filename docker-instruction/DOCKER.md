@@ -334,6 +334,7 @@ docker compose up              # 啟動並顯示日誌
 docker compose stop            # 停止(保留容器)
 docker compose down            # 停止並移除容器
 docker compose down --rmi all  # 停止並移除容器+映像檔
+sudo docker compose down && sudo docker compose up -d 
 ```
 
 ## 重啟服務

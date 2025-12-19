@@ -153,7 +153,13 @@ export default {
   },
   emits: ['send-message', 'retry', 'close', 'toggle'],
   setup(props, { emit }) {
-    const isOpen = ref(true)  // 預設開啟
+    // 根據螢幕寬度決定預設狀態：桌面版開啟，手機/平板關閉
+    const getInitialOpenState = () => {
+      if (typeof window === 'undefined') return false
+      return window.innerWidth > 1023
+    }
+
+    const isOpen = ref(getInitialOpenState())
     const inputMessage = ref('')
     const messagesContainer = ref(null)
     const inputField = ref(null)
@@ -172,10 +178,12 @@ export default {
       }
     }
 
-    // 初始化時自動聚焦和滾動（因為預設開啟）
+    // 初始化時，如果是桌面版且開啟，則聚焦和滾動
     nextTick(() => {
-      scrollToBottom()
-      inputField.value?.focus()
+      if (isOpen.value) {
+        scrollToBottom()
+        inputField.value?.focus()
+      }
     })
 
     function closeSidebar() {
@@ -292,9 +300,9 @@ export default {
 .chat-toggle-button {
   position: fixed;
   right: 20px;
-  bottom: 20px;
-  width: 60px;
-  height: 60px;
+  top: 80px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
@@ -303,12 +311,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
   z-index: 101;
 }
 
 .chat-toggle-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -619,6 +627,16 @@ export default {
   .chat-sidebar {
     width: 320px;
   }
+
+  .chat-toggle-button {
+    width: 52px;
+    height: 52px;
+    top: 76px;
+  }
+
+  .chat-icon {
+    font-size: 24px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -628,10 +646,48 @@ export default {
 
   .chat-sidebar {
     width: 100vw;
+    max-width: 100%;
+  }
+
+  .chat-messages {
+    padding: 12px;
   }
 
   .message-content {
-    max-width: 85%;
+    max-width: 90%;
+  }
+
+  .chat-toggle-button {
+    top: 70px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .chat-icon {
+    font-size: 20px;
+  }
+
+  .unread-badge {
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    padding: 1px 4px;
+    min-width: 16px;
+  }
+
+  .chat-input-form {
+    padding: 10px;
+  }
+
+  .chat-input {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .send-button {
+    padding: 6px 12px;
+    font-size: 14px;
   }
 }
 </style>
