@@ -339,15 +339,6 @@ store_heatmap/
 - [Data Model](specs/001-heatmap-visualization/data-model.md)
 - [API Specification](specs/001-heatmap-visualization/spec.md)
 
-## Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
 ## License
 
 This project is available for educational and portfolio demonstration purposes.
